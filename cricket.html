@@ -1017,7 +1017,7 @@ function applyOutcome(o, striker){
       endOver();
     }
     if(checkInningsEnd()) return;
-    setTimeout(()=>{ newDelivery(); }, 700);
+    setTimeout(()=>{ newDelivery(); }, 1700);   // pause after the ball before the next delivery
   });
 }
 
@@ -1073,7 +1073,7 @@ function aiBowl(){
     const length=Math.random();
     const speed=0.3+Math.random()*0.6;
     deliver({line,length,speed});
-  },650);
+  },1400);   // bowler waits / walks back before running in
 }
 
 /* ============================================================
@@ -1380,7 +1380,7 @@ function resolveMissedDelivery(){
   ball.active=false;
   if(inn.balls>0 && inn.balls%6===0 && inn.wkts<10 && inn.balls<inn.maxBalls) endOver();
   if(checkInningsEnd()) return;
-  setTimeout(newDelivery,600);
+  setTimeout(newDelivery,1600);   // pause after a missed ball before the next delivery
 }
 
 function render(){
@@ -1389,6 +1389,7 @@ function render(){
   drawSky();
   drawStands();
   drawField();
+  drawStumps();
   drawPlayers();
 
   // ball in flight (delivery)
@@ -1411,6 +1412,33 @@ function render(){
     }
   }
   drawDugout();
+}
+
+/* ---------------- Stumps / wickets ---------------- */
+function drawStumps(){
+  if(!FIELD.batEnd || !FIELD.bowlerEnd) return;
+  drawWicketSet(FIELD.bowlerEnd.x, FIELD.bowlerEnd.y, 18); // far end (bowler) — smaller
+  drawWicketSet(FIELD.batEnd.x,    FIELD.batEnd.y,    30); // near end (batsman) — larger
+}
+function drawWicketSet(cx, cy, h){
+  const gap=h*0.26, w=Math.max(1.6,h*0.085);
+  ctx.save();
+  // shadow on the pitch
+  ctx.fillStyle='rgba(0,0,0,.28)';
+  ctx.beginPath(); ctx.ellipse(cx, cy+1.5, gap*2.4, h*0.10, 0, 0, Math.PI*2); ctx.fill();
+  // three stumps
+  for(let i=-1;i<=1;i++){
+    const x=cx+i*gap;
+    const grd=ctx.createLinearGradient(x-w/2,0,x+w/2,0);
+    grd.addColorStop(0,'#efe2c2'); grd.addColorStop(.5,'#fbf4e2'); grd.addColorStop(1,'#cdbd95');
+    ctx.fillStyle=grd;
+    roundRect(x-w/2, cy-h, w, h, w*0.4); ctx.fill();
+  }
+  // two bails on top
+  ctx.fillStyle='#d8cba8';
+  ctx.fillRect(cx-gap-w*0.5, cy-h-w*0.9, gap+w, w*0.8);
+  ctx.fillRect(cx-w*0.5,     cy-h-w*0.9, gap+w, w*0.8);
+  ctx.restore();
 }
 
 /* helper */

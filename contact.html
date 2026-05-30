@@ -26,7 +26,7 @@
     <div class="contact-card">
       <h3 style="font-size:1.5rem;font-weight:600;letter-spacing:-.01em">Let's talk</h3>
       <div style="margin-top:18px">
-        <a class="btn" href="mailto:">Email me</a>
+        <button class="btn" id="emailBtn">Email me</button>
         <a class="btn ghost" href="#">My channel</a>
       </div>
       <p class="note">Tip: always check with a parent before sharing any personal information online.</p>
@@ -35,5 +35,17 @@
 </main>
 
 <footer><div class="foot-inner"><span>© 2026 Archan</span><span>Built for fun.</span></div></footer>
+
+<script>
+  document.getElementById('emailBtn').addEventListener('click', function(){
+    var from = prompt("What's your email address? (so Archan can reply to you)");
+    if(from === null) return;                 // visitor pressed Cancel
+    from = from.trim();
+    var to = 'archancheela24@gmail.com';
+    var subject = encodeURIComponent('Hi Archan — a message from your website');
+    var body = encodeURIComponent('From: ' + (from || '(not given)') + '\n\nMy message:\n');
+    window.location.href = 'mailto:' + to + '?subject=' + subject + '&body=' + body;
+  });
+</script>
 </body>
 </html>
