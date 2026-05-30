@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasy XI — RCB vs GT</title>
+<style>
+  :root{
+    --bg:#070d16; --panel:#0f1b2b; --panel2:#13243a; --line:#22364c;
+    --text:#e6f1ff; --muted:#8aa3c2; --gold:#fbbf24; --green:#22c55e; --red:#ef4444;
+    --rcb:#e0263a; --gt:#1aa0c8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:
+      radial-gradient(circle at 12% 0%,rgba(224,38,58,.12),transparent 42%),
+      radial-gradient(circle at 90% 100%,rgba(26,160,200,.12),transparent 42%),var(--bg);
+    color:var(--text);min-height:100vh;padding:14px}
+  .wrap{max-width:980px;margin:0 auto}
+
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    background:linear-gradient(90deg,var(--panel),var(--panel2));border:1px solid var(--line);
+    border-radius:14px;padding:12px 16px;margin-bottom:12px}
+  .top h1{font-size:1.15rem;letter-spacing:.5px}
+  .top .vs{color:var(--muted);font-size:.8rem}
+  .meters{display:flex;gap:16px;font-weight:bold}
+  .meters .m span{color:var(--muted);font-size:.7rem;display:block;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .meters .cr b{color:var(--gold)} .meters .pk b{color:var(--green)}
+  .meters b{font-size:1.3rem}
+
+  .cols{display:grid;grid-template-columns:1fr 360px;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+  h2{font-size:.78rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:12px}
+
+  .filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .filters button{flex:1;min-width:54px;padding:8px 6px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--muted);border-radius:9px;cursor:pointer;font-weight:bold;font-size:.74rem;letter-spacing:.5px}
+  .filters button.on{background:var(--text);color:#06101f;border-color:var(--text)}
+
+  .plist{display:flex;flex-direction:column;gap:7px;max-height:430px;overflow-y:auto;padding-right:4px}
+  .prow{display:grid;grid-template-columns:36px 1fr auto auto;align-items:center;gap:10px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .prow.sel{border-color:var(--green);background:rgba(34,197,94,.12)}
+  .prow.dis{opacity:.4}
+  .badge{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:.62rem;color:#fff}
+  .prow .nm{font-weight:700;font-size:.9rem}
+  .prow .sub{font-size:.68rem;color:var(--muted)}
+  .prow .cr{font-weight:bold;color:var(--gold);font-size:.85rem;font-variant-numeric:tabular-nums}
+  .addbtn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);font-size:1.1rem;cursor:pointer;font-weight:bold}
+  .addbtn.rm{background:var(--red);border-color:var(--red);color:#fff}
+
+  /* team panel */
+  .roleline{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:8px}
+  .roleline b{color:var(--text)}
+  .slots{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;min-height:60px}
+  .slot{display:grid;grid-template-columns:30px 1fr auto auto;align-items:center;gap:8px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-size:.82rem}
+  .slot .cap{display:flex;gap:4px}
+  .capbtn{width:26px;height:24px;border-radius:6px;border:1px solid var(--line);background:var(--panel);
+    color:var(--muted);font-size:.66rem;font-weight:bold;cursor:pointer}
+  .capbtn.c{background:var(--gold);color:#1a1300;border-color:var(--gold)}
+  .capbtn.vc{background:#9ad;color:#06101f;border-color:#9ad}
+  .empty{color:var(--muted);font-size:.8rem;text-align:center;padding:20px 0}
+
+  .status{font-size:.78rem;color:var(--muted);margin-bottom:10px;min-height:18px;text-align:center}
+  .status.bad{color:var(--red)} .status.good{color:var(--green)}
+  .bigbtn{width:100%;padding:14px;border:none;border-radius:12px;cursor:pointer;font-weight:bold;
+    font-size:1rem;letter-spacing:1px;text-transform:uppercase;
+    background:linear-gradient(180deg,var(--green),#15a34a);color:#04250f}
+  .bigbtn:disabled{background:#22364c;color:var(--muted);cursor:not-allowed}
+  .ghost{background:transparent;border:1px solid var(--line);color:var(--muted);margin-top:8px}
+
+  /* result modal */
+  .modal{position:fixed;inset:0;background:rgba(4,9,16,.85);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .modal.on{display:flex}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto}
+  .box h3{text-align:center;font-size:1.4rem;margin-bottom:4px}
+  .total{text-align:center;font-size:2.6rem;font-weight:800;color:var(--gold);margin:6px 0}
+  .verdict{text-align:center;color:var(--muted);margin-bottom:14px}
+  .scoreline{display:flex;justify-content:space-between;font-size:.82rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+  .scoreline .pts{font-weight:bold;font-variant-numeric:tabular-nums}
+  .tag{font-size:.6rem;font-weight:bold;padding:1px 5px;border-radius:5px;margin-left:5px}
+  .tag.c{background:var(--gold);color:#1a1300}.tag.vc{background:#9ad;color:#06101f}
+
+  .shead,.srow{display:grid;grid-template-columns:1.5fr repeat(8,1fr);gap:4px;align-items:center}
+  .shead{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;text-align:center}
+  .shead span:first-child{text-align:left}
+  .srow{font-size:.72rem;padding:5px 0;border-bottom:1px solid var(--line)}
+  .srow .pn{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .srow input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:6px;
+    color:var(--text);font-size:.74rem;padding:4px 2px;text-align:center}
+  .srow input:focus{outline:none;border-color:var(--gold)}
+  .note{font-size:.66rem;color:var(--muted);text-align:center;margin-top:14px;opacity:.8}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>⚡ Fantasy XI</h1>
+      <div class="vs"><b style="color:var(--rcb)">RCB</b> vs <b style="color:var(--gt)">GT</b> — pick your dream team</div>
+    </div>
+    <div class="meters">
+      <div class="m cr"><span>Credits left</span><b id="credLeft">100.0</b></div>
+      <div class="m pk"><span>Picked</span><b><span id="pickCount">0</span>/11</b></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <!-- PLAYER POOL -->
+    <div class="panel">
+      <h2>Select Players</h2>
+      <div class="filters" id="filters">
+        <button data-r="ALL" class="on">All</button>
+        <button data-r="WK">WK</button>
+        <button data-r="BAT">BAT</button>
+        <button data-r="AR">AR</button>
+        <button data-r="BOWL">BOWL</button>
+      </div>
+      <div class="plist" id="plist"></div>
+    </div>
+
+    <!-- YOUR TEAM -->
+    <div class="panel">
+      <h2>Your Team</h2>
+      <div class="roleline">
+        <span>WK <b id="cWK">0</b></span><span>BAT <b id="cBAT">0</b></span>
+        <span>AR <b id="cAR">0</b></span><span>BOWL <b id="cBOWL">0</b></span>
+      </div>
+      <div class="roleline"><span>RCB <b id="cRCB">0</b></span><span>GT <b id="cGT">0</b></span>
+        <span style="color:var(--gold)">C ×2 · VC ×1.5</span></div>
+      <div class="slots" id="slots"><div class="empty">No players yet. Add 11 from the left.</div></div>
+      <div class="status" id="status">Pick 11 players within 100 credits.</div>
+      <button class="bigbtn" id="playBtn" disabled>📋 Enter Match Stats</button>
+      <button class="bigbtn ghost" id="simBtn" disabled>⚡ Quick Sim (random)</button>
+      <button class="bigbtn ghost" id="clearBtn">Clear Team</button>
+      <div class="note">Fan-made fantasy game · not affiliated with IPL or Tata. Player names used as references only.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ENTER MATCH STATS -->
+<div class="modal" id="statsModal">
+  <div class="box">
+    <h3 style="font-size:1.3rem">📋 Final Scorecard</h3>
+    <p style="text-align:center;color:var(--muted);font-size:.74rem;margin:4px 0 12px">Type each player's real numbers from the match, then calculate.</p>
+    <div class="shead">
+      <span>Player</span><span>R</span><span>4s</span><span>6s</span><span>W</span><span>Mdn</span><span>Ct</span><span>St</span><span>RO</span>
+    </div>
+    <div id="statsList"></div>
+    <button class="bigbtn" id="calcBtn" style="margin-top:14px">Calculate Points</button>
+    <button class="bigbtn ghost" id="statsCancel" style="margin-top:8px">Cancel</button>
+    <div class="note">R runs · 4s/6s boundaries · W wickets · Mdn maidens · Ct catches · St stumpings · RO run-outs</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="modal" id="modal">
+  <div class="box">
+    <h3 id="resTitle">Match Result</h3>
+    <div class="total"><span id="resTotal">0</span> pts</div>
+    <div class="verdict" id="resVerdict"></div>
+    <div id="resList"></div>
+    <button class="bigbtn" id="closeBtn" style="margin-top:16px">Play Again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ----- squads (representative; edit names/credits freely) -----
+const PLAYERS=[
+  // ----- Royal Challengers Bengaluru (RCB) — IPL 2026 squad -----
+  {id:'r1', name:'Rajat Patidar',     team:'RCB', role:'BAT',  cr:9.0},   // captain
+  {id:'r2', name:'Virat Kohli',       team:'RCB', role:'BAT',  cr:11.0},
+  {id:'r3', name:'Devdutt Padikkal',  team:'RCB', role:'BAT',  cr:8.5},
+  {id:'r4', name:'Phil Salt',         team:'RCB', role:'WK',   cr:10.0},
+  {id:'r5', name:'Jitesh Sharma',     team:'RCB', role:'WK',   cr:8.5},
+  {id:'r6', name:'Jordan Cox',        team:'RCB', role:'WK',   cr:7.0},
+  {id:'r7', name:'Krunal Pandya',     team:'RCB', role:'AR',   cr:8.5},
+  {id:'r8', name:'Tim David',         team:'RCB', role:'AR',   cr:9.0},
+  {id:'r9', name:'Romario Shepherd',  team:'RCB', role:'AR',   cr:8.0},
+  {id:'r10',name:'Jacob Bethell',     team:'RCB', role:'AR',   cr:8.0},
+  {id:'r11',name:'Venkatesh Iyer',    team:'RCB', role:'AR',   cr:8.5},
+  {id:'r12',name:'Swapnil Singh',     team:'RCB', role:'AR',   cr:6.5},
+  {id:'r13',name:'Satvik Deswal',     team:'RCB', role:'AR',   cr:6.0},
+  {id:'r14',name:'Mangesh Yadav',     team:'RCB', role:'AR',   cr:6.0},
+  {id:'r15',name:'Vicky Ostwal',      team:'RCB', role:'AR',   cr:6.0},
+  {id:'r16',name:'Vihaan Malhotra',   team:'RCB', role:'AR',   cr:6.0},
+  {id:'r17',name:'Kanishk Chouhan',   team:'RCB', role:'AR',   cr:6.0},
+  {id:'r18',name:'Josh Hazlewood',    team:'RCB', role:'BOWL', cr:9.5},
+  {id:'r19',name:'Bhuvneshwar Kumar', team:'RCB', role:'BOWL', cr:8.5},
+  {id:'r20',name:'Yash Dayal',        team:'RCB', role:'BOWL', cr:7.5},
+  {id:'r21',name:'Suyash Sharma',     team:'RCB', role:'BOWL', cr:7.5},
+  {id:'r22',name:'Rasikh Dar',        team:'RCB', role:'BOWL', cr:7.0},
+  {id:'r23',name:'Jacob Duffy',       team:'RCB', role:'BOWL', cr:7.5},
+  {id:'r24',name:'Richard Gleeson',   team:'RCB', role:'BOWL', cr:7.5},
+  {id:'r25',name:'Abhinandan Singh',  team:'RCB', role:'BOWL', cr:6.5},
+
+  // ----- Gujarat Titans (GT) — IPL 2026 squad -----
+  {id:'g1', name:'Shubman Gill',      team:'GT',  role:'BAT',  cr:11.0},  // captain
+  {id:'g2', name:'B Sai Sudharsan',   team:'GT',  role:'BAT',  cr:9.5},
+  {id:'g3', name:'Shahrukh Khan',     team:'GT',  role:'BAT',  cr:7.5},
+  {id:'g4', name:'Jos Buttler',       team:'GT',  role:'WK',   cr:10.5},
+  {id:'g5', name:'Tom Banton',        team:'GT',  role:'WK',   cr:7.5},
+  {id:'g6', name:'Anuj Rawat',        team:'GT',  role:'WK',   cr:7.0},
+  {id:'g7', name:'Kumar Kushagra',    team:'GT',  role:'WK',   cr:6.5},
+  {id:'g8', name:'Rashid Khan',       team:'GT',  role:'AR',   cr:10.0},
+  {id:'g9', name:'Washington Sundar', team:'GT',  role:'AR',   cr:8.5},
+  {id:'g10',name:'Jason Holder',      team:'GT',  role:'AR',   cr:8.5},
+  {id:'g11',name:'Glenn Phillips',    team:'GT',  role:'AR',   cr:8.5},
+  {id:'g12',name:'Rahul Tewatia',     team:'GT',  role:'AR',   cr:7.5},
+  {id:'g13',name:'Nishant Sindhu',    team:'GT',  role:'AR',   cr:6.5},
+  {id:'g14',name:'Manav Suthar',      team:'GT',  role:'AR',   cr:6.5},
+  {id:'g15',name:'Kagiso Rabada',     team:'GT',  role:'BOWL', cr:10.0},
+  {id:'g16',name:'Mohammed Siraj',    team:'GT',  role:'BOWL', cr:9.5},
+  {id:'g17',name:'Prasidh Krishna',   team:'GT',  role:'BOWL', cr:8.5},
+  {id:'g18',name:'Sai Kishore',       team:'GT',  role:'BOWL', cr:7.5},
+  {id:'g19',name:'Ishant Sharma',     team:'GT',  role:'BOWL', cr:7.0},
+  {id:'g20',name:'Arshad Khan',       team:'GT',  role:'BOWL', cr:7.0},
+  {id:'g21',name:'Luke Wood',         team:'GT',  role:'BOWL', cr:7.0},
+  {id:'g22',name:'Jayant Yadav',      team:'GT',  role:'BOWL', cr:7.0},
+  {id:'g23',name:'Gurnoor Brar',      team:'GT',  role:'BOWL', cr:6.5},
+  {id:'g24',name:'Ashok Sharma',      team:'GT',  role:'BOWL', cr:6.5},
+  {id:'g25',name:'Y Prithvi Raj',     team:'GT',  role:'BOWL', cr:6.5},
+];
+const TEAMCOL={RCB:'#e0263a', GT:'#1aa0c8'};
+const ROLE_MIN={WK:1,BAT:3,AR:1,BOWL:3};
+const ROLE_MAX={WK:4,BAT:6,AR:4,BOWL:6};
+const BUDGET=100, SQUAD=11, MAX_PER_TEAM=7;
+
+let picked=[];           // array of player ids
+let captain=null, vice=null;
+let filter='ALL';
+
+const $=id=>document.getElementById(id);
+function P(id){ return PLAYERS.find(p=>p.id===id); }
+function creditsUsed(){ return picked.reduce((s,id)=>s+P(id).cr,0); }
+function creditsLeft(){ return BUDGET-creditsUsed(); }
+function roleCount(r){ return picked.filter(id=>P(id).role===r).length; }
+function teamCount(t){ return picked.filter(id=>P(id).team===t).length; }
+
+function canAdd(p){
+  if(picked.includes(p.id)) return true; // already in (so it shows as removable)
+  if(picked.length>=SQUAD) return false;
+  if(p.cr>creditsLeft()+1e-9) return false;
+  if(teamCount(p.team)>=MAX_PER_TEAM) return false;
+  if(roleCount(p.role)>=ROLE_MAX[p.role]) return false;
+  return true;
+}
+
+function toggle(p){
+  const i=picked.indexOf(p.id);
+  if(i>=0){
+    picked.splice(i,1);
+    if(captain===p.id) captain=null;
+    if(vice===p.id) vice=null;
+  } else {
+    if(!canAdd(p)) return;
+    picked.push(p.id);
+  }
+  save(); renderAll();
+}
+
+function renderPool(){
+  const list=$('plist'); list.innerHTML='';
+  PLAYERS.filter(p=>filter==='ALL'||p.role===filter).forEach(p=>{
+    const sel=picked.includes(p.id);
+    const dis=!sel && !canAdd(p);
+    const row=document.createElement('div');
+    row.className='prow'+(sel?' sel':'')+(dis?' dis':'');
+    row.innerHTML=`
+      <div class="badge" style="background:${TEAMCOL[p.team]}">${p.team}</div>
+      <div><div class="nm">${p.name}</div><div class="sub">${p.role} · ${p.team}</div></div>
+      <div class="cr">${p.cr.toFixed(1)}</div>
+      <button class="addbtn ${sel?'rm':''}">${sel?'−':'+'}</button>`;
+    row.querySelector('.addbtn').addEventListener('click',()=>toggle(p));
+    list.appendChild(row);
+  });
+}
+
+function renderTeam(){
+  $('credLeft').textContent=creditsLeft().toFixed(1);
+  $('pickCount').textContent=picked.length;
+  ['WK','BAT','AR','BOWL'].forEach(r=>$('c'+r).textContent=roleCount(r));
+  $('cRCB').textContent=teamCount('RCB'); $('cGT').textContent=teamCount('GT');
+
+  const slots=$('slots');
+  if(picked.length===0){ slots.innerHTML='<div class="empty">No players yet. Add 11 from the left.</div>'; }
+  else{
+    slots.innerHTML='';
+    picked.map(P).sort((a,b)=>b.cr-a.cr).forEach(p=>{
+      const s=document.createElement('div'); s.className='slot';
+      s.innerHTML=`
+        <div class="badge" style="width:24px;height:24px;font-size:.55rem;background:${TEAMCOL[p.team]}">${p.team}</div>
+        <div><b>${p.name}</b> <span style="color:var(--muted);font-size:.7rem">${p.role}</span></div>
+        <div class="cap">
+          <button class="capbtn ${captain===p.id?'c':''}" data-cap="${p.id}">C</button>
+          <button class="capbtn ${vice===p.id?'vc':''}" data-vc="${p.id}">VC</button>
+        </div>
+        <button class="addbtn rm" data-rm="${p.id}">−</button>`;
+      slots.appendChild(s);
+    });
+    slots.querySelectorAll('[data-cap]').forEach(b=>b.addEventListener('click',()=>{
+      const id=b.dataset.cap; captain=(captain===id)?null:id; if(vice===id)vice=null; save(); renderAll();
+    }));
+    slots.querySelectorAll('[data-vc]').forEach(b=>b.addEventListener('click',()=>{
+      const id=b.dataset.vc; vice=(vice===id)?null:id; if(captain===id)captain=null; save(); renderAll();
+    }));
+    slots.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>toggle(P(b.dataset.rm))));
+  }
+  // validation
+  const msgs=[];
+  if(picked.length<SQUAD) msgs.push(`Pick ${SQUAD-picked.length} more player${SQUAD-picked.length>1?'s':''}.`);
+  ['WK','BAT','AR','BOWL'].forEach(r=>{ if(roleCount(r)<ROLE_MIN[r]) msgs.push(`Need ${ROLE_MIN[r]-roleCount(r)} more ${r}.`); });
+  const ready = picked.length===SQUAD && msgs.length===0;
+  let needCap = ready && (!captain || !vice);
+  const st=$('status');
+  if(picked.length===SQUAD && msgs.length===0 && needCap){
+    st.textContent='Now pick your Captain (C) and Vice-Captain (VC).'; st.className='status';
+  } else if(ready && !needCap){
+    st.textContent='Team ready! Enter the match stats to score it.'; st.className='status good';
+  } else {
+    st.textContent=msgs.join(' '); st.className='status bad';
+  }
+  const go = ready && !needCap;
+  $('playBtn').disabled=!go;
+  $('simBtn').disabled=!go;
+}
+
+function renderAll(){ renderPool(); renderTeam(); }
+
+// ----- filters -----
+$('filters').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  $('filters').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); filter=b.dataset.r; renderPool();
+}));
+
+$('clearBtn').addEventListener('click',()=>{ picked=[];captain=null;vice=null;save();renderAll(); });
+
+// ----- fantasy scoring rules (real performance) -----
+// s = {r:runs, f:fours, sx:sixes, w:wickets, m:maidens, c:catches, st:stumpings, ro:runOuts}
+function calcPoints(s){
+  let p = 4;                       // +4 for being in the XI
+  // batting
+  p += s.r;                        // 1 per run
+  p += s.f * 1;                    // boundary bonus
+  p += s.sx * 2;                   // six bonus
+  if(s.r >= 100) p += 16;          // century bonus
+  else if(s.r >= 50) p += 8;       // fifty bonus
+  else if(s.r >= 30) p += 4;       // thirty bonus
+  // bowling
+  p += s.w * 25;                   // 25 per wicket
+  if(s.w >= 5) p += 16;            // 5-wicket haul
+  else if(s.w >= 4) p += 8;
+  else if(s.w >= 3) p += 4;
+  p += s.m * 12;                   // maiden over
+  // fielding
+  p += s.c * 8;                    // catch
+  if(s.c >= 3) p += 4;             // 3-catch bonus
+  p += s.st * 12;                  // stumping
+  p += s.ro * 6;                   // run-out
+  return p;
+}
+
+function showResult(title, total, verdict, rows){
+  $('resTitle').textContent=title;
+  $('resTotal').textContent=total;
+  $('resVerdict').textContent=verdict;
+  $('resList').innerHTML=rows.map(r=>`
+    <div class="scoreline">
+      <span>${r.p.name}<span style="color:var(--muted);font-size:.7rem"> ${r.p.role}</span>
+        ${r.tag?`<span class="tag ${r.tag}">${r.tag.toUpperCase()}</span>`:''}</span>
+      <span class="pts">${r.pts}${r.mult>1?` <span style="color:var(--muted);font-size:.66rem">(${r.base}×${r.mult})</span>`:''}</span>
+    </div>`).join('');
+  $('modal').classList.add('on');
+}
+
+function buildRows(getBase){
+  return picked.map(P).map(p=>{
+    let base=Math.max(0, getBase(p));
+    let mult=1, tag='';
+    if(p.id===captain){ mult=2; tag='c'; }
+    else if(p.id===vice){ mult=1.5; tag='vc'; }
+    return {p, base, pts:Math.round(base*mult), mult, tag};
+  }).sort((a,b)=>b.pts-a.pts);
+}
+
+// ----- Enter real match stats -----
+$('playBtn').addEventListener('click',()=>{
+  const list=$('statsList'); list.innerHTML='';
+  picked.map(P).forEach(p=>{
+    const cap = p.id===captain?' <span class="tag c">C</span>' : p.id===vice?' <span class="tag vc">VC</span>' : '';
+    const row=document.createElement('div'); row.className='srow';
+    row.innerHTML=`<span class="pn">${p.name}${cap}</span>`+
+      ['r','f','sx','w','m','c','st','ro'].map(k=>
+        `<input type="number" min="0" inputmode="numeric" value="0" data-id="${p.id}" data-k="${k}">`).join('');
+    list.appendChild(row);
+  });
+  $('statsModal').classList.add('on');
+});
+$('statsCancel').addEventListener('click',()=>$('statsModal').classList.remove('on'));
+$('calcBtn').addEventListener('click',()=>{
+  const stats={};
+  picked.forEach(id=>stats[id]={r:0,f:0,sx:0,w:0,m:0,c:0,st:0,ro:0});
+  $('statsList').querySelectorAll('input').forEach(inp=>{
+    stats[inp.dataset.id][inp.dataset.k]=Math.max(0, parseInt(inp.value,10)||0);
+  });
+  const rows=buildRows(p=>calcPoints(stats[p.id]));
+  const total=rows.reduce((s,r)=>s+r.pts,0);
+  $('statsModal').classList.remove('on');
+  showResult('🏏 Your Fantasy Points', total,
+    'Scored from the real match stats you entered (Captain ×2, Vice-Captain ×1.5).', rows);
+});
+
+// ----- Quick random simulation (just for fun) -----
+$('simBtn').addEventListener('click',()=>{
+  const rows=buildRows(p=>Math.round((Math.random()*70)+(p.cr-7)*6+15));
+  const total=rows.reduce((s,r)=>s+r.pts,0);
+  const par=Math.round(620+(Math.random()-0.5)*120);
+  let title, verdict;
+  if(total>=par+80){ title='🏆 Top Rank!'; verdict='Brilliant team — you smashed the contest!'; }
+  else if(total>=par){ title='🎉 You Won!'; verdict='Great picks — above the contest average of '+par+'.'; }
+  else if(total>=par-80){ title='So close!'; verdict='Just below the average of '+par+'. Tweak your captain pick!'; }
+  else { title='Tough luck'; verdict='Contest average was '+par+'. Try a different captain.'; }
+  showResult(title, total, verdict, rows);
+});
+
+$('closeBtn').addEventListener('click',()=>$('modal').classList.remove('on'));
+
+// ----- save/load -----
+function save(){ try{ localStorage.setItem('fantasyXI', JSON.stringify({picked,captain,vice})); }catch(e){} }
+function load(){ try{ const s=JSON.parse(localStorage.getItem('fantasyXI')); if(s){ picked=s.picked||[]; captain=s.captain||null; vice=s.vice||null; } }catch(e){} }
+
+load(); renderAll();
+</script>
+</body>
+</html>
