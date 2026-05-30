@@ -1,0 +1,106 @@
+/* ===== Archan — shared minimalist (Apple-style) styles ===== */
+:root{
+  --text:#1d1d1f;
+  --muted:#6e6e73;
+  --bg:#ffffff;
+  --bg2:#f5f5f7;
+  --line:#d2d2d7;
+  --accent:#0071e3;
+  --radius:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color:var(--text);background:var(--bg);line-height:1.5;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+a{color:var(--accent);text-decoration:none}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.72);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid rgba(0,0,0,.08)}
+.nav-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 22px}
+.brand{font-weight:600;font-size:1.05rem;letter-spacing:-.01em;color:var(--text)}
+.nav-links{display:flex;gap:30px;list-style:none}
+.nav-links a{color:var(--text);font-size:.85rem;opacity:.78;transition:opacity .2s}
+.nav-links a:hover{opacity:1}
+.nav-links a.active{opacity:1;font-weight:600}
+
+main{max-width:1000px;margin:0 auto;padding:0 22px}
+.section{padding:88px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.section:last-of-type{border-bottom:none}
+
+/* HERO */
+.hero{padding:120px 22px 96px;text-align:center}
+.eyebrow{color:var(--accent);font-weight:600;font-size:.95rem;margin-bottom:14px}
+.hero h1{font-size:clamp(2.6rem,7vw,4.6rem);font-weight:600;letter-spacing:-.03em;line-height:1.05}
+.hero .sub{font-size:clamp(1.1rem,2.5vw,1.55rem);color:var(--muted);margin-top:18px;font-weight:400}
+.cta{margin-top:34px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+h2.h{font-size:clamp(1.9rem,4vw,2.7rem);font-weight:600;letter-spacing:-.02em;text-align:center}
+.lead{color:var(--muted);font-size:1.15rem;text-align:center;max-width:640px;margin:14px auto 0;font-weight:400}
+
+/* BUTTONS */
+.btn{display:inline-block;background:var(--accent);color:#fff;padding:11px 24px;border-radius:980px;
+  font-size:.98rem;font-weight:500;border:none;cursor:pointer;transition:background .2s}
+.btn:hover{background:#0077ed}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn.ghost:hover{background:rgba(0,113,227,.08)}
+
+/* TILES */
+.grid{display:grid;gap:20px}
+.tiles{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:46px}
+.tile{background:var(--bg2);border-radius:var(--radius);padding:36px 28px;text-align:center;color:var(--text);
+  transition:transform .25s,box-shadow .25s}
+.tile:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,.08)}
+.tile .ic{font-size:2.4rem;margin-bottom:14px}
+.tile h3{font-size:1.25rem;font-weight:600;margin-bottom:8px}
+.tile p{color:var(--muted);font-size:.95rem}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:200px 1fr;gap:48px;align-items:start;margin-top:50px}
+.avatar{aspect-ratio:1;border-radius:26px;background:linear-gradient(135deg,#e8e8ed,#f5f5f7);
+  display:flex;align-items:center;justify-content:center;font-size:5rem}
+.bio h3{font-size:1.2rem;margin:26px 0 8px;font-weight:600}
+.bio h3:first-child{margin-top:0}
+.bio p{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.chip{background:var(--bg2);border:1px solid var(--line);border-radius:980px;padding:7px 16px;font-size:.85rem}
+.stats{display:flex;gap:40px;margin-top:30px;flex-wrap:wrap}
+.stat b{display:block;font-size:1.9rem;font-weight:600;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:.85rem}
+
+/* GAMES */
+.game-card{background:var(--bg2);border-radius:24px;padding:40px 28px;margin-top:34px;text-align:center}
+.game-card h3{font-size:1.6rem;font-weight:600;letter-spacing:-.01em}
+.game-card .desc{color:var(--muted);margin:8px auto 24px;max-width:540px}
+.game-hud{color:var(--muted);font-weight:500;margin-bottom:14px;font-size:.95rem}
+.game-hud span{color:var(--text);font-weight:600}
+canvas{background:#05050f;border-radius:16px;max-width:100%;box-shadow:0 12px 30px rgba(0,0,0,.18);touch-action:none}
+.game-help{color:var(--muted);font-size:.85rem;margin-top:14px}
+.dpad{display:none;grid-template-columns:repeat(3,52px);gap:8px;justify-content:center;margin:14px auto 0}
+.dpad.two{grid-template-columns:repeat(2,64px)}
+.dpad button{height:52px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:1.1rem;cursor:pointer}
+.dpad button:active{background:#e8e8ed}
+@media(max-width:600px){.dpad{display:grid}}
+iframe.game-frame{width:100%;height:740px;border:0;border-radius:20px;display:block;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);background:#070d16}
+
+/* CONTACT */
+.contact-card{background:var(--bg2);border-radius:24px;padding:64px 28px;text-align:center;margin-top:42px}
+.contact-card .btn{margin:10px 6px 0}
+.note{color:var(--muted);font-size:.9rem;max-width:480px;margin:26px auto 0}
+
+/* FOOTER */
+footer{border-top:1px solid rgba(0,0,0,.08);margin-top:0}
+.foot-inner{max-width:1000px;margin:0 auto;padding:26px 22px;color:var(--muted);font-size:.8rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+@media(max-width:700px){
+  .nav-links{gap:18px}
+  .about-grid{grid-template-columns:1fr;text-align:center}
+  .avatar{max-width:150px;margin:0 auto}
+  .chips,.stats{justify-content:center}
+}
